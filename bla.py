@@ -6,6 +6,7 @@ import serial
 import sys
 #import Olimex-NB-IoT-DevKit
 
+DEBUG = True
 com = serial.Serial("/dev/ttyUSB0", baudrate=115200)
 
 BC = MT2625.MT2625(com, 'Olimex-NB-IoT-DevKit')
