@@ -1,19 +1,74 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import MT2625
 import serial
 import sys
-#import Olimex-NB-IoT-DevKit
+import QP
+import MT2625
+import argparse
+import os.path
+from os.path import join
+from TEXT import *
 
-DEBUG = True
-com = serial.Serial("/dev/ttyUSB0", baudrate=115200)
+msg = TEXT()
 
+def res(cond=False, ok_txt="", err_txt=""):
+    if cond:
+        msg.ok(ok_txt)
+    else:
+        msg.error(err_txt)
+
+''' Argument Parser '''
+usage_str =  "usage: bla.py [--backup] <cfg_file>"
+parser = argparse.ArgumentParser(usage=usage_str)
+parser.add_argument("--backup", help="Backup NVDM", action="store_true")
+parser.add_argument("fp", help="Full path to .cfg file")
+parser.add_argument("port", help="COM port")
+args = parser.parse_args()
+
+''' CFG parser'''
+ql = QP.QuectelParser(args.fp)
+ql.parse_data()
+
+fw_path = os.path.dirname(args.fp)
+
+BL_name = join(fw_path, ql.getData("BOOTLOADER")["file"])
+BL_addr = ql.getData("BOOTLOADER")["begin_address"]
+ROM_name = join(fw_path, ql.getData("ROM")["file"])
+ROM_addr = ql.getData("ROM")["begin_address"]
+APP_name = join(fw_path, ql.getData("APP")["file"])
+APP_addr = ql.getData("APP")["begin_address"]
+
+''' Initialization '''
+com = serial.Serial(args.port, baudrate=115200)
 BC = MT2625.MT2625(com, 'Olimex-NB-IoT-DevKit')
 
+''' Begin flashing... '''
 BC.connect(9.0)
-BC.begin(nvdm=1)
-BC.backupNVDM(fname="./bla.dat")
+
+if args.backup:
+    msg.title("NVDM BACKUP")
+    BC.begin(_backup)
+    BC.backupNVDM(nvdm=1)
+else:
+    BC.begin()
+
+msg.title("APPLICATION UPLOAD")
+msg.test_line("Upload application")
+result = BC.uploadApplication(APP_addr,"bc66", APP_name)
+res(result, "DONE", "FAILED")
+
+msg.title("BOOTLOADER UPLOAD")
+msg.test_line("Upload bootloader")
+result = BC.uploadApplication(BL_addr,"bc66", BL_name)
+res(result, "DONE", "FAILED")
+
+msg.title("ROM UPLOAD")
+msg.test_line("Uploading ROM")
+result = BC.uploadApplication(ROM_addr,"bc66", ROM_name)
+res(result, "DONE", "FAILED")
+
 BC.end()
 BC.s.close()
+
 sys.exit(0)

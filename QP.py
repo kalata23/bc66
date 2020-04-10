@@ -45,8 +45,7 @@ class QuectelParser:
                 self.QP_RT_NVDM = nvdm_rt_list[i]["rom"]
 
     def getData(self, req_field=None):
-        self.parse_data()
-
+        
         if req_field == "ROM":
             return self.QP_ROM
         elif req_field == "BOOTLOADER":
