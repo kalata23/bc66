@@ -30,11 +30,11 @@ class QuectelParser:
         rom_list, nvdm_list, nvdm_rt_list = self.export_data()
 
         for i in range(len(rom_list)):
-            if "Boot" in rom_list[i]["rom"]["name"]:
+            if "BOOT" in rom_list[i]["rom"]["name"].upper():
                 self.QP_BL = rom_list[i]["rom"]
-            if "ROM" in rom_list[i]["rom"]["name"]:
+            if "ROM" in rom_list[i]["rom"]["name"].upper():
                 self.QP_ROM = rom_list[i]["rom"]
-            if "APP" in rom_list[i]["rom"]["name"]:
+            if "APP" in rom_list[i]["rom"]["name"].upper():
                 self.QP_APP = rom_list[i]["rom"]
 
         for i in range(len(nvdm_list)):
@@ -42,10 +42,9 @@ class QuectelParser:
                 self.QP_NVDM = nvdm_list[i]["rom"]
 
         for i in range(len(nvdm_rt_list)):
-                self.QP_RT_NVDM = nvdm_rt_list[i]["rom"]
+            self.QP_RT_NVDM = nvdm_rt_list[i]["rom"]
 
     def getData(self, req_field=None):
-        
         if req_field == "ROM":
             return self.QP_ROM
         elif req_field == "BOOTLOADER":
